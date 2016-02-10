@@ -62,12 +62,20 @@ Board.prototype.checkDiagonal = function () {
 };
 
 var showBoard = function(board) {
-  $("div.board").empty();
+  $(".board").empty();
   for(var i = 0; i < board.length; i++) {
     for(var j = 0; j < board[i].length; j++) {
       $(".board").append("<button id='" + i + j + "' class='tile empty'></button>");
     }
   }
+}
+
+var resetBoard = function() {
+  $(".tile").each(function(element) {
+    $(this).removeClass("player1 player2");
+    $(this).removeAttr("disabled");
+  });
+  return new Board();
 }
 
 $(function() {
@@ -81,12 +89,15 @@ $(function() {
     var xCoord = coordinates[1];
     board.makeMove(currentPlayer, parseInt(yCoord), parseInt(xCoord));
     $(".tile#" + yCoord + xCoord).addClass("player" + currentPlayer);
+    $(".tile#" + yCoord + xCoord).attr("disabled", "true");
     var win = board.checkWin();
     var draw = board.checkDraw();
     if (win === true) {
-      alert("Winner!!!!!");
+      alert("Winner!!!!! Player" + currentPlayer);
+      board = resetBoard();
     } else if (draw === true) {
       alert("Its A Draw!!!!!!");
+      board = resetBoard();
     }
     currentPlayer = (currentPlayer === 1) ? 2 : 1;
   })
