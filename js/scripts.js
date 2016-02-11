@@ -16,15 +16,27 @@ Board.prototype.makeMove = function(player, yCoord, xCoord) {
 //ai logic starts here
 Board.prototype.cpuMove = function () {
   var oppositeCorner = this.oppositeCorner();
+  var aiCanFork = this.aiCanFork();
+  var opponentCanFork = this.opponentCanFork();
   var centerEmpty = this.center();
   var cornerEmpty = this.cornerEmpty();
   var sideEmpty = this.sideEmpty();
-  var twoInARow = this.twoInARow();
+  var humanTwoInARow = this.twoInARow(1);
+  var aiTwoInARow = this.twoInARow(2);
   var yCoord;
   var xCoord;
-  if (twoInARow !== false) { //one and two
-    yCoord = twoInARow[0];
-    xCoord = twoInARow[1];
+  if (aiTwoInARow) { //one
+    yCoord = aiTwoInARow[0];
+    xCoord = aiTwoInARow[1];
+  } else if (humanTwoInARow) { //two
+    yCoord = humanTwoInARow[0];
+    xCoord = humanTwoInARow[1];
+  } else if (aiCanFork) { //three
+    yCoord = aiCanFork[0];
+    xCoord = aiCanFork[1];
+  } else if (opponentCanFork) { //four
+    yCoord = opponentCanFork[0];
+    xCoord = opponentCanFork[1];
   } else if (centerEmpty) { //five
     yCoord = 1;
     xCoord = 1;
@@ -42,16 +54,17 @@ Board.prototype.cpuMove = function () {
     var cpuRandomChoice = emptySpaces[Math.floor(Math.random() * (emptySpaces.length-1))]
     yCoord = cpuRandomChoice[0];
     xCoord = cpuRandomChoice[1];
+    console.log(yCoord, xCoord);
   }
   this.board[yCoord][xCoord] = 2;
   this.moveCount++;
   return [yCoord,xCoord];
 };
 
-Board.prototype.twoInARow = function() {
-  twoHorizontal = this.twoHorizontal();
-  twoVertical = this.twoVertical();
-  twoDiagonal = this.twoDiagonal();
+Board.prototype.twoInARow = function(player) {
+  twoHorizontal = this.twoHorizontal(player);
+  twoVertical = this.twoVertical(player);
+  twoDiagonal = this.twoDiagonal(player);
   if (twoHorizontal !== false) {
     return twoHorizontal;
   } else if (twoVertical) {
@@ -63,44 +76,44 @@ Board.prototype.twoInARow = function() {
   }
 }
 
-Board.prototype.twoHorizontal = function() {
+Board.prototype.twoHorizontal = function(player) {
   for(var i = 0; i < this.board.length; i++) {
-    if ((this.board[i][0] === this.board[i][1]) && (this.board[i][0] !== 0) && (this.board[i][2] === 0)) {
+    if ((this.board[i][0] === this.board[i][1]) && (this.board[i][0] === player) && (this.board[i][2] === 0)) {
       return [i, 2];
-    } else if ((this.board[i][1] === this.board[i][2]) && (this.board[i][1] !== 0) && (this.board[i][0] === 0)) {
+    } else if ((this.board[i][1] === this.board[i][2]) && (this.board[i][1] === player) && (this.board[i][0] === 0)) {
       return [i, 0];
-    } else if ((this.board[i][0] === this.board[i][2]) && (this.board[i][0] !== 0) && (this.board[i][1] === 0)) {
+    } else if ((this.board[i][0] === this.board[i][2]) && (this.board[i][0] === player) && (this.board[i][1] === 0)) {
       return [i, 1];
     }
   }
   return false;
 }
 
-Board.prototype.twoVertical = function() {
+Board.prototype.twoVertical = function(player) {
   for(var i = 0; i < this.board[0].length; i++) {
-    if ((this.board[0][i] === this.board[1][i]) && (this.board[0][i] !== 0) && (this.board[2][i] === 0)) {
+    if ((this.board[0][i] === this.board[1][i]) && (this.board[0][i] === player) && (this.board[2][i] === 0) ) {
       return [2, i];
-    } else if ((this.board[1][i] === this.board[2][i]) && (this.board[1][i] !== 0) && (this.board[0][i] === 0)) {
+    } else if ((this.board[1][i] === this.board[2][i]) && (this.board[1][i] === player) && (this.board[0][i] === 0)) {
       return [0, i];
-    } else if ((this.board[0][i] === this.board[2][i]) && (this.board[0][i] !== 0) && (this.board[1][i] === 0)) {
+    } else if ((this.board[0][i] === this.board[2][i]) && (this.board[0][i] === player) && (this.board[1][i] === 0)) {
       return [1, i];
     }
   }
   return false;
 }
 
-Board.prototype.twoDiagonal = function() {
-  if ((this.board[0][0] === this.board[1][1]) && (this.board[0][0] !== 0) && (this.board[2][2] === 0)) {
+Board.prototype.twoDiagonal = function(player) {
+  if ((this.board[0][0] === this.board[1][1]) && (this.board[0][0] === player) && (this.board[2][2] === 0)) {
     return [2, 2];
-  } else if ((this.board[1][1] === this.board[2][2]) && (this.board[1][1] !== 0) && (this.board[0][0] === 0)) {
+  } else if ((this.board[1][1] === this.board[2][2]) && (this.board[1][1] === player) && (this.board[0][0] === 0)) {
     return [0, 0];
-  } else if ((this.board[0][0] === this.board[2][2]) && (this.board[0][0] !== 0) && (this.board[1][1] === 0)) {
+  } else if ((this.board[0][0] === this.board[2][2]) && (this.board[0][0] === player) && (this.board[1][1] === 0)) {
     return [1, 1];
-  } else if ((this.board[0][2] === this.board[1][1]) && (this.board[0][2] !== 0) && (this.board[2][0] === 0)) {
+  } else if ((this.board[0][2] === this.board[1][1]) && (this.board[0][2] === player) && (this.board[2][0] === 0)) {
     return [2, 0];
-  } else if ((this.board[2][0] === this.board[1][1]) && (this.board[2][0] !== 0) && (this.board[0][2] === 0)) {
+  } else if ((this.board[2][0] === this.board[1][1]) && (this.board[2][0] === player) && (this.board[0][2] === 0)) {
     return [0, 2];
-  } else if ((this.board[2][0] === this.board[0][2]) && (this.board[2][0] !== 0) && (this.board[1][1] === 0)) {
+  } else if ((this.board[2][0] === this.board[0][2]) && (this.board[2][0] === player) && (this.board[1][1] === 0)) {
     return [1, 1];
   }
   return false;
@@ -114,6 +127,36 @@ Board.prototype.oppositeCorner = function () {
   } else if (this.board[0][2] === 1 && this.board[1][1] === 0) {
     return [2,0];
   } else if (this.board[2][0] === 1 && this.board[1][1] === 0) {
+    return [0,2];
+  } else {
+    return false;
+  }
+}
+
+Board.prototype.opponentCanFork = function() {
+  if((this.board[0][0] === 1 && this.board[2][2] === 1  && this.board[1][0] !== 2) || (this.board[2][0] === 1 && this.board[0][2] === 1 && this.board[1][0] !== 2)) {
+    return [1, 0];
+  } else if (this.board[1][0] === 1 && this.board[2][1] === 1 && this.board[2][0] !== 2) {
+    return [2, 0];
+  } else if (this.board[2][1] === 1 && this.board[1][2] === 1 && this.board[2][2] !== 2) {
+    return [2, 2];
+  } else if (this.board[0][1] === 1 && this.board[1][2] === 1 && this.board[0][2] !== 2) {
+    return [0, 2];
+  } else if (this.board[1][0] === 1 && this.board[0][1] === 1 && this.board[0][0] !== 2) {
+    return [0, 0];
+  } else {
+    return false;
+  }
+}
+
+Board.prototype.aiCanFork = function () {
+  if(this.getEmptySpaces().length === 9) {
+    return [0,0];
+  } else if (this.board[0][0] === 2 && this.board[2][2] === 0 && this.getEmptySpaces().length === 7) {
+    return [2,2];
+  } else if (this.board[0][0] === 2 && this.board[2][2] === 1 && this.getEmptySpaces().length === 7) {
+    return [2,0];
+  } else if (this.board[0][0] === 2 && this.board[2][0] === 2 && this.board[2][2] === 1 && this.getEmptySpaces().length === 5) {
     return [0,2];
   } else {
     return false;
@@ -244,8 +287,6 @@ var randomPlayer = function () {
   return Math.floor(Math.random() * 2) + 1;
 }
 
-
-
 $(function() {
   var currentBoard = new Board(randomPlayer());
   var currentPlayer = currentBoard.firstPlayer;
@@ -267,7 +308,6 @@ $(function() {
     $(".tile#" + yCoord + xCoord).addClass("player" + currentPlayer);
     $(".tile#" + yCoord + xCoord).attr("disabled", "true");
     currentBoard = checkForAWin(currentBoard, currentPlayer) || currentBoard;
-
     currentPlayer = 2;
 
     var timeOutID = window.setTimeout(function() {
@@ -277,13 +317,14 @@ $(function() {
         $(".tile#" + coords[0] + coords[1] ).attr("disabled", "true");
         currentBoard = checkForAWin(currentBoard, currentPlayer) || currentBoard;
         currentPlayer = 1;
+        if (currentBoard.isFinished) {
+          window.location.reload();
+        }
       }
-    }, 800);
-
+    }, 600);
 
     if (currentBoard.isFinished) {
       window.location.reload();
     }
-
   });
 });
