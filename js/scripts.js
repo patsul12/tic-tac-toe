@@ -1,8 +1,9 @@
-function Board() {
+function Board(firstPlayer) {
   this.board = [[0,0,0],
                 [0,0,0],
                 [0,0,0]];
   this.moveCount = 0;
+  this.firstPlayer = firstPlayer;
 }
 
 // player move
@@ -28,10 +29,11 @@ Board.prototype.cpuMove = function () {
     yCoord = cornerEmpty[0];
     xCoord = cornerEmpty[1];
   } else {
-    yCoord = Math.floor(Math.random() * 3);
-    xCoord = Math.floor(Math.random() * 3);
+    var emptySpaces = this.getEmptySpaces();
+    var cpuRandomChoice = emptySpaces[Math.floor(Math.random() * (emptySpaces.length-1))]
+    yCoord = cpuRandomChoice[0];
+    xCoord = cpuRandomChoice[1];
   }
-  console.log(yCoord);
   this.board[yCoord][xCoord] = 2;
   this.moveCount++;
   return [yCoord,xCoord];
@@ -125,7 +127,7 @@ Board.prototype.checkWin = function () {
 };
 
 Board.prototype.checkDraw = function () {
-  return this.moveCount === (Math.pow(this.board.length, 2)) && this.checkWin() === false;
+  return this.moveCount === (Math.pow(this.board.length, 2) ) && this.checkWin() === false;
 }
 
 Board.prototype.checkHorizontal = function () {
@@ -165,6 +167,18 @@ Board.prototype.checkDiagonal = function () {
   return false;
 };
 
+Board.prototype.getEmptySpaces = function () {
+  var emptySpaceArray = [];
+  for(var i = 0; i < this.board.length; i++) {
+    for(var j = 0; j < this.board[i].length; j++) {
+      if (this.board[i][j] === 0) {
+        emptySpaceArray.push([i,j]);
+      }
+    }
+  }
+  return emptySpaceArray;
+};
+
 var showBoard = function(board) {
   $(".board").empty();
   for(var i = 0; i < board.length; i++) {
@@ -175,40 +189,55 @@ var showBoard = function(board) {
 }
 
 var resetBoard = function() {
-  $(".tile").each(function(element) {
-    $(this).removeClass("player1 player2");
-    $(this).removeAttr("disabled");
-  });
-  return new Board();
+  window.location = 'index.html';
 }
 
+var checkForAWin = function(board, player) {
+  var win = board.checkWin();
+  var draw = board.checkDraw();
+  if (win === true) {
+    alert("Winner!!!!! Player" + player);
+    resetBoard();
+  } else if (draw === true) {
+    alert("Its A Draw!!!!!!");
+    resetBoard();
+  }
+}
+
+var randomPlayer = function () {
+  return Math.floor(Math.random() * 2) + 1;
+}
+
+
+
 $(function() {
-  var board = new Board();
-  var currentPlayer = 1;
-  showBoard(board.board);
+  var currentBoard = new Board(randomPlayer());
+  var currentPlayer = currentBoard.firstPlayer;
+  console.log("first player is " + currentPlayer);
+  showBoard(currentBoard.board);
+
+  if (currentPlayer === 2) {
+    var coords = currentBoard.cpuMove();
+    $(".tile#" + coords[0] + coords[1] ).addClass("player" + currentPlayer);
+    $(".tile#" + coords[0] + coords[1] ).attr("disabled", "true");
+    currentBoard = checkForAWin(currentBoard, currentPlayer) || currentBoard;
+    currentPlayer = 1;
+  }
 
   $(".tile").on("click", function() {
     var coordinates = $(this).attr("id").split("");
     var yCoord = coordinates[0];
     var xCoord = coordinates[1];
-    if (currentPlayer === 1) {
-      board.makeMove(currentPlayer, parseInt(yCoord), parseInt(xCoord));
-      $(".tile#" + yCoord + xCoord).addClass("player" + currentPlayer);
-      $(".tile#" + yCoord + xCoord).attr("disabled", "true");
-    } else {
-      var coords = board.cpuMove();
-      $(".tile#" + coords[0] + coords[1] ).addClass("player" + currentPlayer);
-      $(".tile#" + coords[0] + coords[1] ).attr("disabled", "true");
-    }
-    var win = board.checkWin();
-    var draw = board.checkDraw();
-    if (win === true) {
-      alert("Winner!!!!! Player" + currentPlayer);
-      board = resetBoard();
-    } else if (draw === true) {
-      alert("Its A Draw!!!!!!");
-      board = resetBoard();
-    }
-    currentPlayer = (currentPlayer === 1) ? 2 : 1;
-  })
+    currentBoard.makeMove(currentPlayer, parseInt(yCoord), parseInt(xCoord));
+    $(".tile#" + yCoord + xCoord).addClass("player" + currentPlayer);
+    $(".tile#" + yCoord + xCoord).attr("disabled", "true");
+    currentBoard = checkForAWin(currentBoard, currentPlayer) || currentBoard;
+
+    currentPlayer = 2;
+    var coords = currentBoard.cpuMove();
+    $(".tile#" + coords[0] + coords[1] ).addClass("player" + currentPlayer);
+    $(".tile#" + coords[0] + coords[1] ).attr("disabled", "true");
+    currentBoard = checkForAWin(currentBoard, currentPlayer) || currentBoard;
+    currentPlayer = 1;
+  });
 });
