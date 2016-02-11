@@ -269,13 +269,19 @@ $(function() {
     currentBoard = checkForAWin(currentBoard, currentPlayer) || currentBoard;
 
     currentPlayer = 2;
-    if (!currentBoard.isFinished) {
-      var coords = currentBoard.cpuMove();
-      $(".tile#" + coords[0] + coords[1] ).addClass("player" + currentPlayer);
-      $(".tile#" + coords[0] + coords[1] ).attr("disabled", "true");
-      currentBoard = checkForAWin(currentBoard, currentPlayer) || currentBoard;
-      currentPlayer = 1;
-    } else {
+
+    var timeOutID = window.setTimeout(function() {
+      if (!currentBoard.isFinished) {
+        var coords = currentBoard.cpuMove();
+        $(".tile#" + coords[0] + coords[1] ).addClass("player" + currentPlayer);
+        $(".tile#" + coords[0] + coords[1] ).attr("disabled", "true");
+        currentBoard = checkForAWin(currentBoard, currentPlayer) || currentBoard;
+        currentPlayer = 1;
+      }
+    }, 800);
+
+
+    if (currentBoard.isFinished) {
       window.location.reload();
     }
 
