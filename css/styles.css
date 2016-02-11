@@ -1,9 +1,9 @@
 body {
-  background-color: black;
+  background-color: gray;
 }
 
-h1 {
-  color: gray;
+.page-header {
+  color: #b30000;
 }
 
 .board {
@@ -45,7 +45,7 @@ h1 {
 }
 
 .player2 {
-  background-image: url("../O-128.png");
+  background-image: url("../O-128.jpg");
   background-color: white;
   background-repeat: no-repeat;
   background-size: cover;
