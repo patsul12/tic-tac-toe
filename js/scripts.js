@@ -4,6 +4,7 @@ function Board(firstPlayer) {
                 [0,0,0]];
   this.moveCount = 0;
   this.firstPlayer = firstPlayer;
+  this.isFinished = false;
 }
 
 // player move
@@ -14,20 +15,28 @@ Board.prototype.makeMove = function(player, yCoord, xCoord) {
 
 //ai logic starts here
 Board.prototype.cpuMove = function () {
+  var oppositeCorner = this.oppositeCorner();
   var centerEmpty = this.center();
   var cornerEmpty = this.cornerEmpty();
+  var sideEmpty = this.sideEmpty();
   var twoInARow = this.twoInARow();
   var yCoord;
   var xCoord;
-  if (twoInARow !== false) {
+  if (twoInARow !== false) { //one and two
     yCoord = twoInARow[0];
     xCoord = twoInARow[1];
-  } else if (centerEmpty) {
+  } else if (centerEmpty) { //five
     yCoord = 1;
     xCoord = 1;
-  } else if (cornerEmpty !== false) {
+  } else if (oppositeCorner) { //six
+    yCoord = oppositeCorner[0];
+    xCoord = oppositeCorner[1];
+  } else if (cornerEmpty !== false) { //seven
     yCoord = cornerEmpty[0];
     xCoord = cornerEmpty[1];
+  } else if (sideEmpty !== false) { //eight
+    yCoord = sideEmpty[0];
+    xCoord = sideEmpty[1];
   } else {
     var emptySpaces = this.getEmptySpaces();
     var cpuRandomChoice = emptySpaces[Math.floor(Math.random() * (emptySpaces.length-1))]
@@ -97,6 +106,20 @@ Board.prototype.twoDiagonal = function() {
   return false;
 }
 
+Board.prototype.oppositeCorner = function () {
+  if(this.board[0][0] === 1 && this.board[1][1] === 0) {
+    return [2,2];
+  } else if (this.board[2][2] === 1 && this.board[1][1] === 0) {
+    return [0,0];
+  } else if (this.board[0][2] === 1 && this.board[1][1] === 0) {
+    return [2,0];
+  } else if (this.board[2][0] === 1 && this.board[1][1] === 0) {
+    return [0,2];
+  } else {
+    return false;
+  }
+};
+
 Board.prototype.center = function() {
   return this.board[1][1] === 0;
 }
@@ -113,7 +136,22 @@ Board.prototype.cornerEmpty = function() {
   } else {
     return false;
   }
-} //ai logic ends here
+}
+
+Board.prototype.sideEmpty = function () {
+  if (this.board[0][1] === 0) {
+    return [0,1];
+  } else if (this.board[1][0] === 0) {
+    return [0,1];
+  } else if (this.board[1][2] === 0) {
+    return [1,2]
+  } else if (this.board[2][1] === 0) {
+    return [2,1]
+  } else {
+    return false;
+  }
+};
+//ai logic ends here
 
 // check all win conditions
 Board.prototype.checkWin = function () {
@@ -188,19 +226,17 @@ var showBoard = function(board) {
   }
 }
 
-var resetBoard = function() {
-  window.location = 'index.html';
-}
-
 var checkForAWin = function(board, player) {
   var win = board.checkWin();
   var draw = board.checkDraw();
   if (win === true) {
     alert("Winner!!!!! Player" + player);
-    resetBoard();
+    board.isFinished = true;
+    return board;
   } else if (draw === true) {
     alert("Its A Draw!!!!!!");
-    resetBoard();
+    board.isFinished = true;
+    return board;
   }
 }
 
@@ -213,7 +249,6 @@ var randomPlayer = function () {
 $(function() {
   var currentBoard = new Board(randomPlayer());
   var currentPlayer = currentBoard.firstPlayer;
-  console.log("first player is " + currentPlayer);
   showBoard(currentBoard.board);
 
   if (currentPlayer === 2) {
@@ -234,10 +269,15 @@ $(function() {
     currentBoard = checkForAWin(currentBoard, currentPlayer) || currentBoard;
 
     currentPlayer = 2;
-    var coords = currentBoard.cpuMove();
-    $(".tile#" + coords[0] + coords[1] ).addClass("player" + currentPlayer);
-    $(".tile#" + coords[0] + coords[1] ).attr("disabled", "true");
-    currentBoard = checkForAWin(currentBoard, currentPlayer) || currentBoard;
-    currentPlayer = 1;
+    if (!currentBoard.isFinished) {
+      var coords = currentBoard.cpuMove();
+      $(".tile#" + coords[0] + coords[1] ).addClass("player" + currentPlayer);
+      $(".tile#" + coords[0] + coords[1] ).attr("disabled", "true");
+      currentBoard = checkForAWin(currentBoard, currentPlayer) || currentBoard;
+      currentPlayer = 1;
+    } else {
+      window.location.reload();
+    }
+
   });
 });
